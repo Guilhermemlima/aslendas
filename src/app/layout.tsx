@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Caveat, Cormorant_Garamond, Inter } from 'next/font/google'
+import { unstable_rethrow } from 'next/navigation'
 import { ToastProvider } from '@/components/ui/toast'
 import { getCoupleContext } from '@/services/session'
 import { SITE } from '@/lib/constants'
@@ -33,9 +34,27 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // A paleta e as animações do casal são aplicadas já no HTML, sem flash.
-  const context = await getCoupleContext()
-  const palette = context?.settings.palette ?? 'rose'
-  const animations = context?.settings.animations ?? true
+  //
+  // O layout raiz embrulha TODAS as páginas, inclusive a de erro e a de login.
+  // Se ele estourar, o site inteiro vira tela branca — então aqui a falha é
+  // absorvida e o app cai no tema padrão. Quem precisa dos dados de verdade
+  // (as páginas em (app)) chama requireCouple() e trata a ausência lá.
+  let palette = 'rose'
+  let animations = true
+
+  try {
+    const context = await getCoupleContext()
+    if (context) {
+      palette = context.settings.palette
+      animations = context.settings.animations
+    }
+  } catch (causa) {
+    // O Next sinaliza redirect, notFound e uso dinâmico por exceção. Engolir
+    // essas faz a rota ser tratada como estática e quebrar em produção — então
+    // elas voltam a subir, e só o resto é absorvido.
+    unstable_rethrow(causa)
+    console.error('[nosso-universo] Falha ao carregar o tema do casal:', causa)
+  }
 
   return (
     <html
