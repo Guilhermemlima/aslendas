@@ -1,0 +1,3 @@
+# Conteúdo privado de um casal. Nada aqui deve ser rastreado ou indexado.
+User-agent: *
+Disallow: /

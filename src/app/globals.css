@@ -1,0 +1,182 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   Paletas. `data-palette` no <html> é definido pelas configurações do casal.
+   ========================================================================== */
+@layer base {
+  :root {
+    --c-cream: 253 248 244;
+    --c-blush: 246 216 222;
+    --c-rose-50: 253 244 246;
+    --c-rose-100: 248 226 231;
+    --c-rose-300: 232 160 174;
+    --c-rose-500: 201 123 139;
+    --c-rose-700: 143 79 94;
+    --c-lilac-100: 235 228 246;
+    --c-lilac-300: 197 178 226;
+    --c-lilac-500: 142 118 181;
+    --c-gold: 198 162 90;
+    --c-ink: 59 44 51;
+    --c-ink-soft: 108 91 99;
+    --c-ink-faint: 156 140 148;
+    --c-surface: 255 253 251;
+    --c-line: 235 224 227;
+    --c-shadow: 92 60 72;
+  }
+
+  :root[data-palette='lilac'] {
+    --c-cream: 250 248 253;
+    --c-blush: 228 219 245;
+    --c-rose-100: 235 228 249;
+    --c-rose-300: 197 178 226;
+    --c-rose-500: 150 126 190;
+    --c-rose-700: 98 79 133;
+    --c-line: 231 224 242;
+  }
+
+  :root[data-palette='sunset'] {
+    --c-cream: 253 246 240;
+    --c-blush: 250 219 203;
+    --c-rose-100: 251 226 211;
+    --c-rose-300: 238 168 136;
+    --c-rose-500: 205 121 92;
+    --c-rose-700: 143 78 55;
+    --c-gold: 205 150 70;
+    --c-line: 241 226 216;
+  }
+
+  :root[data-palette='midnight'] {
+    --c-cream: 26 22 31;
+    --c-blush: 58 45 64;
+    --c-rose-50: 40 33 46;
+    --c-rose-100: 52 42 60;
+    --c-rose-300: 176 133 158;
+    --c-rose-500: 214 163 186;
+    --c-rose-700: 240 205 220;
+    --c-lilac-100: 48 42 66;
+    --c-lilac-300: 143 125 191;
+    --c-lilac-500: 179 163 219;
+    --c-gold: 214 179 106;
+    --c-ink: 245 238 242;
+    --c-ink-soft: 199 187 195;
+    --c-ink-faint: 148 136 146;
+    --c-surface: 36 30 42;
+    --c-line: 61 51 68;
+    --c-shadow: 8 4 12;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-cream text-ink font-sans antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgb(var(--c-rose-100) / 0.75), transparent),
+      radial-gradient(ellipse 60% 45% at 100% 100%, rgb(var(--c-lilac-100) / 0.6), transparent);
+    background-attachment: fixed;
+    min-height: 100dvh;
+  }
+
+  /* Respeita quem prefere menos movimento e o ajuste do casal. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  html[data-animations='off'] * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  ::selection {
+    background: rgb(var(--c-rose-300) / 0.35);
+  }
+
+  /* Scrollbar discreta */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--c-rose-300) / 0.5) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: rgb(var(--c-rose-300) / 0.45);
+    border-radius: 999px;
+  }
+}
+
+@layer components {
+  /* Cartão base do sistema: vidro suave sobre o fundo creme. */
+  .card {
+    @apply rounded-card border border-line/70 bg-surface/80 shadow-soft backdrop-blur-[2px];
+  }
+
+  .card-hover {
+    @apply transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-lift;
+  }
+
+  .glass {
+    background: linear-gradient(
+      180deg,
+      rgb(var(--c-surface) / 0.86),
+      rgb(var(--c-surface) / 0.66)
+    );
+    @apply border border-white/40 backdrop-blur-xl;
+  }
+
+  .gold-line {
+    @apply h-px w-full bg-gradient-to-r from-transparent via-gold/45 to-transparent;
+  }
+
+  .label {
+    @apply text-[0.7rem] font-medium uppercase tracking-[0.16em] text-ink-faint;
+  }
+
+  .title-display {
+    @apply font-display text-3xl leading-tight tracking-tight text-ink sm:text-4xl;
+  }
+
+  /* Moldura Polaroid usada na galeria e nas memórias. */
+  .polaroid {
+    @apply rounded-[6px] bg-white p-2 pb-9 shadow-polaroid;
+  }
+
+  .focus-ring {
+    @apply outline-none ring-offset-2 ring-offset-cream focus-visible:ring-2 focus-visible:ring-rose-300;
+  }
+
+  /* Área segura para o menu inferior no mobile. */
+  .pb-safe {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5.5rem);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  /* Conteúdo da área íntima nunca aparece em preview de link/print. */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+  }
+}
