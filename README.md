@@ -45,7 +45,16 @@ cp .env.example .env.local
 | `NEXT_PUBLIC_SITE_URL` | URL do app | sim |
 
 A `service_role` ignora a RLS. Ela só é usada em `/api/cron/avisos`. Nunca a
-prefixe com `NEXT_PUBLIC_`.
+prefixe com `NEXT_PUBLIC_`, nunca a cole em chat ou issue.
+
+Para conferir se ficou tudo certo antes de subir o servidor:
+
+```bash
+npm run verificar
+```
+
+O script valida o formato das chaves, testa a conexão e confere se as seis
+migrations foram aplicadas. Ele nunca imprime o valor de nenhuma chave.
 
 ## 3. Rodar
 
