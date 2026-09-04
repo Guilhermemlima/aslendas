@@ -4,7 +4,15 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { missingSupabaseEnv, readSupabaseEnv } from '@/lib/env'
 
 /** Rotas que podem ser abertas sem sessão. Todo o resto exige login. */
-const PUBLIC_PATHS = ['/entrar', '/criar-conta', '/recuperar-senha', '/auth/callback']
+const PUBLIC_PATHS = [
+  '/entrar',
+  '/criar-conta',
+  '/recuperar-senha',
+  '/auth/callback',
+  // Diagnóstico de configuração: precisa abrir sem sessão, porque é usado
+  // justamente quando o login não funciona. Não expõe nenhum valor.
+  '/api/diagnostico',
+]
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request })

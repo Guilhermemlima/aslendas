@@ -12,8 +12,11 @@ export interface SupabaseEnv {
 }
 
 export function readSupabaseEnv(): SupabaseEnv | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  // Colar valores no painel da Vercel costuma trazer espaço ou quebra de linha
+  // junto. Uma URL com "\n" no fim faz toda chamada ao Supabase estourar, com
+  // uma mensagem que não ajuda em nada — então normalizamos aqui.
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/\/+$/, '')
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
   if (!url || !anonKey) return null
   return { url, anonKey }
 }
