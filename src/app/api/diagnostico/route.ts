@@ -37,23 +37,16 @@ export async function GET() {
     )
   }
 
-  // Confere se a URL é alcançável e se a anon key é aceita.
-  let conexao: Record<string, unknown>
-  try {
-    const resposta = await fetch(`${env.url}/rest/v1/`, {
-      headers: { apikey: env.anonKey, Authorization: `Bearer ${env.anonKey}` },
-      cache: 'no-store',
-    })
-    conexao = { alcancou: true, status: resposta.status, anonKeyAceita: resposta.ok }
-  } catch (causa) {
-    conexao = {
-      alcancou: false,
-      erro: causa instanceof Error ? causa.message : String(causa),
-    }
+  // Testa as duas chaves e guarda a mensagem devolvida pelo Supabase: quando o
+  // token é válido mas recusado, é a mensagem que diz o motivo (chave legada
+  // desativada, schema não exposto, etc).
+  const conexao = {
+    anon: await testar(env.url, env.anonKey),
+    service: await testar(env.url, process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()),
   }
 
   return NextResponse.json({
-    ok: conexao.anonKeyAceita === true,
+    ok: conexao.anon.aceita === true,
     variaveis: relatorio,
     conexao,
     // Quando a chave é recusada, comparar os dois tokens mostra na hora se ela
@@ -105,6 +98,25 @@ function compararChaves(urlConfigurada: string): Record<string, unknown> {
   }
 
   return { anon, service, refDaUrl, problemas }
+}
+
+/**
+ * Bate no endpoint REST com uma chave e devolve status + mensagem de erro.
+ * A mensagem do Supabase é o que distingue "chave errada" de "chave certa
+ * porém recusada por configuração do projeto".
+ */
+async function testar(url: string, chave: string | undefined) {
+  if (!chave) return { testada: false }
+  try {
+    const resposta = await fetch(`${url}/rest/v1/`, {
+      headers: { apikey: chave, Authorization: `Bearer ${chave}` },
+      cache: 'no-store',
+    })
+    const corpo = resposta.ok ? '' : (await resposta.text()).slice(0, 300)
+    return { testada: true, status: resposta.status, aceita: resposta.ok, resposta: corpo || undefined }
+  } catch (causa) {
+    return { testada: true, alcancou: false, erro: causa instanceof Error ? causa.message : String(causa) }
+  }
 }
 
 /**
