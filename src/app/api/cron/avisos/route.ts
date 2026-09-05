@@ -14,8 +14,8 @@ export const maxDuration = 60
  * por isso o segredo do header é obrigatório e nada aqui devolve conteúdo.
  */
 export async function GET(request: NextRequest) {
-  const secret = process.env.CRON_SECRET
-  const provided = request.headers.get('authorization')?.replace('Bearer ', '')
+  const secret = process.env.CRON_SECRET?.trim()
+  const provided = request.headers.get('authorization')?.replace('Bearer ', '').trim()
 
   if (!secret || provided !== secret) {
     return NextResponse.json({ error: 'não autorizado' }, { status: 401 })

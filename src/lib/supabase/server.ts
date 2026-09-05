@@ -36,7 +36,7 @@ export async function createClient(): Promise<SupabaseClient> {
  * Hoje é usado apenas pelo cron de surpresas e pela exportação de backup.
  */
 export function createAdminClient(): SupabaseClient {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
   if (!key) throw new Error('SUPABASE_SERVICE_ROLE_KEY não configurada')
 
   return createRawClient(requireSupabaseEnv().url, key, {

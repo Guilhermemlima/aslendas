@@ -49,7 +49,7 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
     password: parsed.data.password,
     options: {
       data: { display_name: parsed.data.displayName },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/auth/callback`,
+      emailRedirectTo: `${(process.env.NEXT_PUBLIC_SITE_URL ?? '').trim()}/auth/callback`,
     },
   })
 
