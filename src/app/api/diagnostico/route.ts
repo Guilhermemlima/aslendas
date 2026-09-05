@@ -53,6 +53,7 @@ export async function GET() {
     ok: conexao.anon.aceita === true,
     variaveis: relatorio,
     conexao,
+    contas: await contarUsuarios(env.url),
     // Quando a chave é recusada, comparar os dois tokens mostra na hora se ela
     // é de outro projeto ou se tem o papel errado.
     chaves: compararChaves(env.url),
@@ -102,6 +103,46 @@ function compararChaves(urlConfigurada: string): Record<string, unknown> {
   }
 
   return { anon, service, refDaUrl, problemas }
+}
+
+/**
+ * Conta usuários e quantos estão com o e-mail confirmado.
+ *
+ * Só números: nenhum e-mail, id ou dado pessoal sai daqui — a rota é aberta.
+ * Serve para responder "a conta foi criada?" e "ela está pendente?" sem
+ * precisar abrir o painel do Supabase.
+ */
+async function contarUsuarios(url: string): Promise<Record<string, unknown>> {
+  const chave = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+  if (!chave) return { disponivel: false }
+
+  try {
+    const resposta = await fetch(`${url}/auth/v1/admin/users?per_page=200`, {
+      headers: { apikey: chave, Authorization: `Bearer ${chave}` },
+      cache: 'no-store',
+    })
+    if (!resposta.ok) return { disponivel: false, status: resposta.status }
+
+    const dados = (await resposta.json()) as {
+      users?: { email_confirmed_at?: string | null; created_at?: string }[]
+    }
+    const usuarios = dados.users ?? []
+    const confirmados = usuarios.filter((u) => Boolean(u.email_confirmed_at)).length
+
+    return {
+      disponivel: true,
+      total: usuarios.length,
+      confirmados,
+      pendentes: usuarios.length - confirmados,
+      ultimoCadastro: usuarios
+        .map((u) => u.created_at)
+        .filter(Boolean)
+        .sort()
+        .at(-1),
+    }
+  } catch {
+    return { disponivel: false }
+  }
 }
 
 /**

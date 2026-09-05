@@ -24,13 +24,40 @@ export async function signIn(_prev: ActionState, formData: FormData): Promise<Ac
   const { error } = await supabase.auth.signInWithPassword(parsed.data)
 
   if (error) {
-    await logSecurityEvent('login_falhou', { email: parsed.data.email })
-    return { error: 'E-mail ou senha incorretos.' }
+    await logSecurityEvent('login_falhou', { email: parsed.data.email, motivo: error.code })
+    return { error: mensagemDeLogin(error.code, error.message) }
   }
 
   await logSecurityEvent('login')
   const redirectTo = String(formData.get('redirect') || '/')
   redirect(redirectTo.startsWith('/') ? redirectTo : '/')
+}
+
+/**
+ * Traduz o erro do Supabase.
+ *
+ * Colapsar tudo em "e-mail ou senha incorretos" esconde o caso mais comum de
+ * primeiro acesso: a conta existe, mas ficou pendente de confirmação porque foi
+ * criada enquanto "Confirm email" estava ligado. Desligar a opção depois não
+ * confirma quem já havia se cadastrado.
+ */
+function mensagemDeLogin(codigo: string | undefined, mensagem: string): string {
+  if (codigo === 'email_not_confirmed' || /not confirmed/i.test(mensagem)) {
+    return (
+      'Esta conta existe, mas está pendente de confirmação de e-mail. ' +
+      'No Supabase, vá em Authentication → Users, abra o usuário e confirme manualmente ' +
+      '(ou apague e cadastre de novo, agora com a confirmação desligada).'
+    )
+  }
+  if (codigo === 'invalid_credentials' || /invalid login/i.test(mensagem)) {
+    return 'E-mail ou senha incorretos. Se você ainda não tem conta, use "Criar minha conta".'
+  }
+  if (codigo === 'over_request_rate_limit' || /rate limit/i.test(mensagem)) {
+    return 'Muitas tentativas seguidas. Espere um minuto e tente de novo.'
+  }
+  if (codigo === 'user_banned') return 'Esta conta está bloqueada no Supabase.'
+
+  return `Não consegui entrar: ${mensagem}`
 }
 
 export async function signUp(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -54,7 +81,10 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
   })
 
   if (error) {
-    return { error: error.message.includes('already') ? 'Este e-mail já tem conta.' : 'Não consegui criar a conta.' }
+    if (error.message.includes('already')) {
+      return { error: 'Este e-mail já tem conta. Use "Entrar" em vez de criar.' }
+    }
+    return { error: `Não consegui criar a conta: ${error.message}` }
   }
 
   redirect('/comecar')
