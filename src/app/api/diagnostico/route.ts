@@ -28,6 +28,9 @@ export async function GET() {
         ok: false,
         causa: 'Variáveis do Supabase ausentes no build.',
         acao: 'Vercel → Settings → Environment Variables e depois Redeploy sem cache.',
+        // Se a service_role estiver configurada, ela diz de qual projeto é —
+        // então dá para informar exatamente qual URL usar.
+        dica: pistaDaServiceRole(),
         variaveis: relatorio,
       },
       { status: 200 },
@@ -54,6 +57,41 @@ export async function GET() {
     variaveis: relatorio,
     conexao,
   })
+}
+
+/**
+ * Lê o corpo do JWT da service_role para descobrir a que projeto ela pertence.
+ *
+ * O `ref` do projeto não é segredo — ele aparece na própria URL pública do
+ * Supabase. A assinatura do token nunca é tocada e o valor da chave nunca é
+ * devolvido; isso só serve para dizer qual URL preencher.
+ */
+function pistaDaServiceRole(): Record<string, unknown> | undefined {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+  if (!key) return undefined
+
+  try {
+    const corpo = key.split('.')[1]
+    if (!corpo) return undefined
+
+    const payload = JSON.parse(
+      Buffer.from(corpo.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'),
+    ) as { ref?: string; role?: string }
+
+    if (!payload.ref) return undefined
+
+    return {
+      urlDoProjeto: `https://${payload.ref}.supabase.co`,
+      papelDaChave: payload.role,
+      // Trocar anon e service_role de lugar é o erro mais comum.
+      atencao:
+        payload.role !== 'service_role'
+          ? `A chave em SUPABASE_SERVICE_ROLE_KEY tem papel "${payload.role}". Confira se você não trocou as duas de lugar.`
+          : undefined,
+    }
+  } catch {
+    return undefined
+  }
 }
 
 /** Metadados suficientes para diagnosticar, sem revelar o segredo. */
