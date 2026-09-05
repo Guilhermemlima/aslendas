@@ -112,13 +112,11 @@ async function checar(rotulo, caminho, chave, opcoes = {}) {
   }
 }
 
-await checar('a anon key foi aceita', '/rest/v1/', anon)
+// /rest/v1/ aceita SOMENTE a service_role; a anon key se valida no Auth,
+// que e o caminho usado no login.
+await checar('a anon key foi aceita', '/auth/v1/settings', anon)
 
-const jogos = await checar(
-  'a service_role foi aceita',
-  '/rest/v1/games?select=slug&limit=1',
-  service,
-)
+const jogos = await checar('a service_role foi aceita', '/rest/v1/', service)
 
 /* ------------------------------------------------- migrations aplicadas? --- */
 

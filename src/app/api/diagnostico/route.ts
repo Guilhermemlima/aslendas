@@ -40,9 +40,13 @@ export async function GET() {
   // Testa as duas chaves e guarda a mensagem devolvida pelo Supabase: quando o
   // token é válido mas recusado, é a mensagem que diz o motivo (chave legada
   // desativada, schema não exposto, etc).
+  // Cada chave é testada no endpoint que ela realmente pode usar:
+  //   * /rest/v1/ (a raiz do PostgREST) aceita SOMENTE a service_role;
+  //   * /auth/v1/settings é o que a anon key acessa — é o mesmo caminho que o
+  //     app usa no login, então valida exatamente o que interessa.
   const conexao = {
-    anon: await testar(env.url, env.anonKey),
-    service: await testar(env.url, process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()),
+    anon: await testar(env.url, env.anonKey, '/auth/v1/settings'),
+    service: await testar(env.url, process.env.SUPABASE_SERVICE_ROLE_KEY?.trim(), '/rest/v1/'),
   }
 
   return NextResponse.json({
@@ -105,15 +109,41 @@ function compararChaves(urlConfigurada: string): Record<string, unknown> {
  * A mensagem do Supabase é o que distingue "chave errada" de "chave certa
  * porém recusada por configuração do projeto".
  */
-async function testar(url: string, chave: string | undefined) {
+async function testar(url: string, chave: string | undefined, caminho: string) {
   if (!chave) return { testada: false }
   try {
-    const resposta = await fetch(`${url}/rest/v1/`, {
+    const resposta = await fetch(`${url}${caminho}`, {
       headers: { apikey: chave, Authorization: `Bearer ${chave}` },
       cache: 'no-store',
     })
-    const corpo = resposta.ok ? '' : (await resposta.text()).slice(0, 300)
-    return { testada: true, status: resposta.status, aceita: resposta.ok, resposta: corpo || undefined }
+
+    if (!resposta.ok) {
+      return {
+        testada: true,
+        endpoint: caminho,
+        status: resposta.status,
+        aceita: false,
+        resposta: (await resposta.text()).slice(0, 300),
+      }
+    }
+
+    // Em /auth/v1/settings a resposta traz a configuração do Auth: dá para
+    // avisar de cara se o cadastro está bloqueado ou exigindo confirmação.
+    let auth: Record<string, unknown> | undefined
+    if (caminho.startsWith('/auth/v1/settings')) {
+      const dados = (await resposta.json()) as {
+        disable_signup?: boolean
+        mailer_autoconfirm?: boolean
+        external?: { email?: boolean }
+      }
+      auth = {
+        cadastroLiberado: dados.disable_signup === false,
+        loginPorEmailAtivo: dados.external?.email === true,
+        confirmacaoDeEmailExigida: dados.mailer_autoconfirm === false,
+      }
+    }
+
+    return { testada: true, endpoint: caminho, status: resposta.status, aceita: true, auth }
   } catch (causa) {
     return { testada: true, alcancou: false, erro: causa instanceof Error ? causa.message : String(causa) }
   }
