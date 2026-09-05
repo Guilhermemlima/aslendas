@@ -56,7 +56,55 @@ export async function GET() {
     ok: conexao.anonKeyAceita === true,
     variaveis: relatorio,
     conexao,
+    // Quando a chave é recusada, comparar os dois tokens mostra na hora se ela
+    // é de outro projeto ou se tem o papel errado.
+    chaves: compararChaves(env.url),
   })
+}
+
+/**
+ * Compara anon key e service_role: de que projeto cada uma é e qual papel
+ * carregam. Só lê o corpo do JWT (ref e role), nunca a assinatura, e nunca
+ * devolve o valor das chaves.
+ */
+function compararChaves(urlConfigurada: string): Record<string, unknown> {
+  const ler = (valor: string | undefined) => {
+    if (!valor) return { presente: false }
+    const corpo = valor.trim().split('.')[1]
+    if (!corpo) return { presente: true, formato: 'não é um JWT' }
+    try {
+      const payload = JSON.parse(
+        Buffer.from(corpo.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'),
+      ) as { ref?: string; role?: string; exp?: number }
+      return {
+        presente: true,
+        projeto: payload.ref,
+        papel: payload.role,
+        expirada: payload.exp ? payload.exp * 1000 < Date.now() : undefined,
+      }
+    } catch {
+      return { presente: true, formato: 'corpo do JWT ilegível' }
+    }
+  }
+
+  const anon = ler(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  const service = ler(process.env.SUPABASE_SERVICE_ROLE_KEY)
+  const refDaUrl = urlConfigurada.match(/https:\/\/([a-z0-9-]+)\.supabase\.co/)?.[1]
+
+  const problemas: string[] = []
+  if ('papel' in anon && anon.papel !== 'anon') {
+    problemas.push(`A chave em NEXT_PUBLIC_SUPABASE_ANON_KEY tem papel "${anon.papel}", não "anon".`)
+  }
+  if ('projeto' in anon && anon.projeto !== refDaUrl) {
+    problemas.push(
+      `A anon key é do projeto "${anon.projeto}", mas a URL aponta para "${refDaUrl}". São projetos diferentes.`,
+    )
+  }
+  if ('expirada' in anon && anon.expirada) {
+    problemas.push('A anon key está expirada. Gere uma nova no painel do Supabase.')
+  }
+
+  return { anon, service, refDaUrl, problemas }
 }
 
 /**
