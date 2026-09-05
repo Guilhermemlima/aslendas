@@ -5,6 +5,7 @@ import { Card, CardBody } from '@/components/ui/card'
 import { Badge, Progress, SectionHeading } from '@/components/ui/misc'
 import { NavIcon } from '@/components/layout/icon'
 import { PageTransition, Reveal } from '@/components/motion/reveal'
+import { CountUp } from '@/components/motion/count-up'
 import { formatShortDate } from '@/lib/date'
 import type { GameCategory } from '@/types/db'
 
@@ -45,17 +46,19 @@ export default async function GamesPage() {
           <CardBody className="grid gap-5 p-5 sm:grid-cols-4">
             <div className="sm:col-span-2">
               <p className="label mb-1">Nível {level.level}</p>
-              <p className="font-display text-3xl text-ink">{stats.xp.toLocaleString('pt-BR')} XP</p>
+              <p className="font-display text-3xl text-ink">
+                <CountUp valor={stats.xp} /> XP
+              </p>
               <Progress value={level.current / level.needed} className="mt-3" />
               <p className="mt-1.5 text-xs text-ink-faint">
                 faltam {(level.needed - level.current).toLocaleString('pt-BR')} XP para o próximo nível
               </p>
             </div>
 
-            <Stat label="Pontos" value={stats.points.toLocaleString('pt-BR')} />
+            <Stat label="Pontos" valor={stats.points} />
             <Stat label="Sequência" value={`${stats.streak_days} ${stats.streak_days === 1 ? 'dia' : 'dias'}`} />
-            <Stat label="Jogos completos" value={String(stats.games_played)} />
-            <Stat label="Perguntas respondidas" value={String(stats.questions_answered)} />
+            <Stat label="Jogos completos" valor={stats.games_played} />
+            <Stat label="Perguntas respondidas" valor={stats.questions_answered} />
             <Stat label="Conquistas" value={`${unlocked.length}/${achievements.length}`} />
             <div className="flex items-end">
               <Link href="/jogos/conquistas" className="text-sm font-medium text-rose-700 hover:underline">
@@ -143,11 +146,14 @@ export default async function GamesPage() {
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+/** `valor` numérico sobe contando; `value` textual vai direto. */
+function Stat({ label, value, valor }: { label: string; value?: string; valor?: number }) {
   return (
     <div>
       <p className="label mb-1">{label}</p>
-      <p className="font-display text-2xl text-ink">{value}</p>
+      <p className="font-display text-2xl text-ink">
+        {valor !== undefined ? <CountUp valor={valor} /> : value}
+      </p>
     </div>
   )
 }

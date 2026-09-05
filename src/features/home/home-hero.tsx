@@ -7,6 +7,7 @@ import { LiveRelationshipCounter } from '@/components/motion/countdown'
 import { Petals } from '@/components/motion/particles'
 import { Confetti } from '@/components/motion/confetti'
 import { ButtonLink } from '@/components/ui/button'
+import { Parallax } from '@/components/motion/gsap-scroll'
 import { relationshipTime, nextMilestone, formatDate } from '@/lib/date'
 import type { Couple } from '@/types/db'
 
@@ -49,8 +50,16 @@ export function HomeHero({
       >
         <div className="relative aspect-[16/10] w-full sm:aspect-[21/9]">
           {coverUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={coverUrl} alt="" className="h-full w-full object-cover" />
+            // A imagem é 25% mais alta que o quadro e sobe um pouco: assim o
+            // parallax tem folga para deslocar sem mostrar borda vazia.
+            <Parallax className="absolute inset-0" intensidade={0.12}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={coverUrl}
+                alt=""
+                className="absolute inset-x-0 -top-[12%] h-[125%] w-full object-cover"
+              />
+            </Parallax>
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gradient-romance">
               <Heart className="h-14 w-14 text-rose-300" aria-hidden />

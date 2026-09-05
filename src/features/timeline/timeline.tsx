@@ -1,11 +1,11 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { motion } from 'framer-motion'
 import { MapPin, Music2, Star } from 'lucide-react'
 import { Modal } from '@/components/ui/modal'
 import { Badge } from '@/components/ui/misc'
 import { Polaroid } from '@/components/motion/polaroid'
+import { ScrollReveal, ScrollProgressLine } from '@/components/motion/gsap-scroll'
 import { TIMELINE_CATEGORIES } from '@/lib/constants'
 import { formatDate } from '@/lib/date'
 import { cn } from '@/lib/utils'
@@ -84,8 +84,9 @@ export function Timeline({ events }: { events: TimelineEntry[] }) {
       </div>
 
       <div className="relative">
-        {/* fio da linha do tempo */}
-        <div className="absolute bottom-0 left-[0.9rem] top-2 w-px bg-gradient-to-b from-rose-300 via-lilac-300 to-transparent sm:left-1/2" />
+        {/* O fio se desenha conforme a pessoa rola, amarrado à posição do
+            scroll — por isso é GSAP e não Framer Motion. */}
+        <ScrollProgressLine className="absolute bottom-0 left-[0.9rem] top-2 w-px sm:left-1/2" />
 
         <div className="space-y-10">
           {byYear.map(([year, yearEvents]) => (
@@ -96,7 +97,9 @@ export function Timeline({ events }: { events: TimelineEntry[] }) {
                 </span>
               </div>
 
-              <div className="space-y-6">
+              {/* A cascata é calculada para o ano inteiro: os cartões entram
+                  encadeados, em vez de cada um disparar por conta própria. */}
+              <ScrollReveal className="space-y-6" seletor=":scope > [data-cartao]">
                 {yearEvents.map((event, index) => (
                   <TimelineCard
                     key={event.id}
@@ -105,7 +108,7 @@ export function Timeline({ events }: { events: TimelineEntry[] }) {
                     onOpen={() => setSelected(event)}
                   />
                 ))}
-              </div>
+              </ScrollReveal>
             </section>
           ))}
         </div>
@@ -174,12 +177,11 @@ function TimelineCard({
 }) {
   const meta = TIMELINE_CATEGORIES[event.category]
 
+  // Sem motion aqui de propósito: quem anima a entrada é o ScrollReveal (GSAP)
+  // do grupo do ano. Dois animadores no mesmo elemento se anulam.
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-80px' }}
-      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+    <div
+      data-cartao
       className={cn(
         'relative pl-10 sm:w-1/2 sm:pl-0',
         side === 'left' ? 'sm:pr-10' : 'sm:ml-auto sm:pl-10',
@@ -245,6 +247,6 @@ function TimelineCard({
           )}
         </div>
       </button>
-    </motion.div>
+    </div>
   )
 }

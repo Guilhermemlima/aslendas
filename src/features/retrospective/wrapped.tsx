@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/motion/confetti'
+import { CountUp } from '@/components/motion/count-up'
 import { cn } from '@/lib/utils'
 import type { YearSummary } from '@/app/(app)/retrospectiva/page'
 
@@ -89,7 +90,13 @@ export function Wrapped({
               transition={{ delay: 0.15, type: 'spring', stiffness: 200, damping: 18 }}
               className="font-display text-7xl leading-none text-ink sm:text-8xl"
             >
-              {slide.value}
+              {/* Slides de contagem sobem o número; o de "tag do ano" é
+                  texto e vai direto. */}
+              {/^\d+$/.test(slide.value) ? (
+                <CountUp key={`${index}-${slide.value}`} valor={Number(slide.value)} />
+              ) : (
+                slide.value
+              )}
             </motion.p>
 
             <p className="text-balance font-display text-2xl text-ink">{slide.headline}</p>

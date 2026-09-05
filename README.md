@@ -108,6 +108,21 @@ docs/                       arquitetura e notas de segurança
 Camadas: **página (Server Component) → service (leitura) / action (escrita) →
 Supabase**. Componentes de UI não falam com o banco diretamente.
 
+### Animação: duas bibliotecas, papéis separados
+
+| | Usada para | Onde |
+| --- | --- | --- |
+| **Framer Motion** | entrada/saída de componentes, `layout`, gestos, modais | maior parte do app |
+| **GSAP** + ScrollTrigger | coreografia amarrada ao scroll, linha que se desenha, parallax, contadores | linha do tempo, Home, retrospectiva, jogos |
+
+Regra que evita bug silencioso: **nunca aplique as duas no mesmo elemento**. O
+Framer Motion reescreve `style.transform` a cada frame e sobrescreve o GSAP.
+
+`movimentoPermitido()` em `src/lib/gsap.ts` é o portão único: respeita a
+configuração do casal (`data-animations` no `<html>`), o `prefers-reduced-motion`
+do sistema e abas ocultas. Quando ele diz não, o conteúdo aparece pronto — nada
+depende de uma animação rodar para ficar visível.
+
 ## 6. O que já está pronto
 
 - Autenticação por e-mail, criação de casal e convite por código.
