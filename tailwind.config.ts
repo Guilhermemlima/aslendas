@@ -37,6 +37,9 @@ const config: Config = {
         sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         display: ['var(--font-display)', 'Georgia', 'serif'],
         hand: ['var(--font-hand)', 'cursive'],
+        // As fontes do tema nao tem emoji; sem este fallback o navegador
+        // escolhe um glifo monocromatico qualquer.
+        emoji: ['"Apple Color Emoji"', '"Segoe UI Emoji"', '"Noto Color Emoji"', 'sans-serif'],
       },
       borderRadius: {
         xl: '1rem',

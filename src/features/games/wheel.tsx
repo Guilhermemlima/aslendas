@@ -70,14 +70,24 @@ export function Wheel({
             }}
           >
             {segments.map((segment, index) => (
+              // O wrapper ocupa a roda inteira e gira em torno do centro dela.
+              // Como `items-start justify-center` deixa o ícone no topo, o
+              // ângulo passa a ser medido a partir das 12 horas — a mesma
+              // referência do conic-gradient. Girar um elemento posicionado com
+              // translateX mediria a partir das 3 horas e jogaria todo ícone 90°
+              // adiante da sua própria fatia.
               <span
                 key={segment.label}
-                className="absolute left-1/2 top-1/2 origin-left text-lg"
-                style={{
-                  transform: `rotate(${index * slice + slice / 2}deg) translateX(4.5rem)`,
-                }}
+                className="pointer-events-none absolute inset-0 flex items-start justify-center"
+                style={{ transform: `rotate(${index * slice + slice / 2}deg)` }}
               >
-                {segment.icon}
+                <span
+                  className="mt-7 block font-emoji text-lg leading-none"
+                  // Contra-rotação para o emoji ficar em pé, não deitado.
+                  style={{ transform: `rotate(${-(index * slice + slice / 2)}deg)` }}
+                >
+                  {segment.icon}
+                </span>
               </span>
             ))}
           </motion.div>
@@ -91,7 +101,7 @@ export function Wheel({
           <div className="space-y-3 text-center">
             <p className="label">A roleta decidiu</p>
             <p className="font-display text-3xl text-ink">
-              {result.icon} {result.label}
+              <span className="font-emoji">{result.icon}</span> {result.label}
             </p>
             <p className="text-sm text-ink-soft">{result.detail}</p>
             <Button size="lg" className="w-full" onClick={() => onSpun(result.label)}>
