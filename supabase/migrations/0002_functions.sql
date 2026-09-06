@@ -145,7 +145,9 @@ begin
     raise exception 'este casal já está completo';
   end if;
 
-  new_code := upper(substr(encode(gen_random_bytes(8), 'hex'), 1, 10));
+  -- gen_random_uuid() e nativa do PG13+; gen_random_bytes() exigiria pgcrypto
+  -- no search_path, o que quebra sob `set search_path = public`.
+  new_code := upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 10));
 
   insert into public.couple_invites (couple_id, code, email, created_by)
   values (cid, new_code, target_email, auth.uid());
