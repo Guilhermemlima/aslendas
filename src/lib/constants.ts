@@ -59,6 +59,22 @@ export const DATE_CATEGORIES: Record<DateCategory, { label: string; emoji: strin
   lembrete: { label: 'Lembrete', emoji: '🔔' },
 }
 
+/**
+ * Jogos que não sorteiam nada do banco de perguntas: as roletas rodam pelos
+ * segmentos do próprio jogo e os dois "adivinhe" usam o acervo do casal.
+ * Para esses, banco vazio é o estado normal — não significa nada bloqueado.
+ */
+const GAMES_SEM_PERGUNTAS = new Set([
+  'roleta-do-casal',
+  'roleta-de-encontros',
+  'adivinhe-a-foto',
+  'adivinhe-a-memoria',
+])
+
+export function usaBancoDePerguntas(slug: string): boolean {
+  return !GAMES_SEM_PERGUNTAS.has(slug)
+}
+
 export const INTENSITY: Record<IntensityLevel, { label: string; description: string; rank: number }> = {
   leve: { label: 'Leve', description: 'Carinho, conversa e conexão.', rank: 1 },
   intermediario: { label: 'Intermediário', description: 'Um pouco mais pessoal.', rank: 2 },

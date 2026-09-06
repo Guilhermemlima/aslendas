@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { actionContext, fail, firstIssue, ok, type Result } from '@/app/actions/_helpers'
 import { gameQuestionSchema } from '@/lib/validation'
+import { usaBancoDePerguntas } from '@/lib/constants'
 import { getGame, listQuestions } from '@/services/games'
 import { getCoupleContext } from '@/services/session'
 import { shuffle, sanitizeText } from '@/lib/utils'
@@ -27,7 +28,8 @@ export async function startSession(input: {
   if (!game.modes.includes(input.mode)) return fail('Este modo não está disponível para o jogo.')
 
   const pool = await listQuestions(game, context.couple.id, context.userId)
-  if (pool.length === 0) {
+  // Roletas e os "adivinhe" não sorteiam do banco: para eles, pool vazio é normal.
+  if (usaBancoDePerguntas(game.slug) && pool.length === 0) {
     return fail(
       game.is_intimate
         ? 'Nenhuma pergunta liberada. Confira o consentimento e o nível de intensidade.'

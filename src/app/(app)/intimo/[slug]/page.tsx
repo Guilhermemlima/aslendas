@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { requireCouple } from '@/services/session'
 import { getGame, listQuestions } from '@/services/games'
 import { getIntimateSettings, isIntimateUnlocked } from '@/services/intimate'
+import { usaBancoDePerguntas } from '@/lib/constants'
 import { GamePlayer } from '@/features/games/game-player'
 import { PageTransition } from '@/components/motion/reveal'
 import { EmptyState } from '@/components/ui/misc'
@@ -26,7 +27,9 @@ export default async function IntimateGamePage({ params }: { params: Promise<{ s
   // listQuestions já aplica intensidade, bloqueios e consentimento dos dois.
   const questions = await listQuestions(game, couple.id, me.id)
 
-  if (questions.length === 0) {
+  // A roleta de encontros não tem banco de perguntas: ela roda pelos segmentos
+  // do próprio jogo, então banco vazio ali não quer dizer conteúdo bloqueado.
+  if (usaBancoDePerguntas(game.slug) && questions.length === 0) {
     return (
       <PageTransition>
         <EmptyState
