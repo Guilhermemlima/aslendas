@@ -3,7 +3,14 @@ import 'server-only'
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
-import type { ConsentCategory, ConsentGrant, ConsentRequest, IntimateSettings, UUID } from '@/types/db'
+import type {
+  ConsentCategory,
+  ConsentGrant,
+  ConsentRequest,
+  IntimateLogEntry,
+  IntimateSettings,
+  UUID,
+} from '@/types/db'
 
 /** Duração da sessão desbloqueada da área íntima. */
 export const INTIMATE_SESSION_MINUTES = 30
@@ -156,4 +163,49 @@ export async function getConsentOverview(
         requests.find((r) => r.category_code === category.code && r.status === 'pendente') ?? null,
     }
   })
+}
+
+/* --------------------------------------------------- registro de intimidade */
+
+/**
+ * Lê o registro do casal. A checagem de PIN não é feita aqui — quem chama
+ * (página ou action) precisa ter passado por `assertIntimateAccess`.
+ */
+export async function listIntimateLog(
+  coupleId: UUID,
+  desde?: string,
+): Promise<IntimateLogEntry[]> {
+  const supabase = await createClient()
+  let query = supabase
+    .from('intimate_log')
+    .select('*')
+    .eq('couple_id', coupleId)
+    .order('happened_on', { ascending: false })
+
+  if (desde) query = query.gte('happened_on', desde)
+
+  const { data } = await query
+  return (data ?? []) as IntimateLogEntry[]
+}
+
+/**
+ * Porta de entrada do conteúdo íntimo no servidor.
+ *
+ * A página já esconde o que é privado, mas Server Actions são endpoints HTTP:
+ * sem esta checagem, alguém com a sessão aberta poderia gravar no registro sem
+ * nunca ter digitado o PIN.
+ */
+export async function assertIntimateAccess(
+  coupleId: UUID,
+  userId: UUID,
+): Promise<{ ok: true } | { ok: false; motivo: string }> {
+  const settings = await getIntimateSettings(coupleId, userId)
+
+  if (!settings?.adult_confirmed_at || !settings.is_enabled) {
+    return { ok: false, motivo: 'A área íntima não está ativada para você.' }
+  }
+  if (!(await isIntimateUnlocked(userId))) {
+    return { ok: false, motivo: 'Sessão bloqueada. Digite o PIN novamente.' }
+  }
+  return { ok: true }
 }

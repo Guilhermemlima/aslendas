@@ -23,6 +23,7 @@ painel administrativo completo.
    | `0005_seed_catalog.sql` | catálogo de jogos, conquistas e categorias de consentimento |
    | `0006_seed_questions.sql` | banco global de perguntas |
    | `0007_corrige_convite.sql` | corrige `create_invite()` (só para bancos criados antes desta correção) |
+   | `0008_registro_intimo.sql` | calendário de registro dentro da área íntima |
 
 3. Em **Authentication → Providers**, deixe **Email** ligado. Para uso pessoal,
    desligar a confirmação por e-mail acelera o cadastro.
@@ -138,6 +139,8 @@ depende de uma animação rodar para ficar visível.
 - 12 jogos abertos + 6 na área íntima, com modo resposta secreta, XP, pontos,
   sequência e conquistas.
 - Área íntima isolada, com maioridade, PIN próprio e consentimento dos dois lados.
+- Registro de intimidade em calendário, com estatísticas — fora do calendário
+  comum, das notificações e da exportação de backup.
 - Modo surpresa programado.
 - Retrospectiva anual estilo "Wrapped".
 - Painel administrativo com drag-and-drop e upload direto para o storage.

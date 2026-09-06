@@ -61,6 +61,12 @@ export default async function IntimatePage() {
               Consentimento
             </Link>
             <Link
+              href="/intimo/registro"
+              className="focus-ring rounded-full bg-surface px-4 py-2 text-sm font-medium text-ink shadow-soft"
+            >
+              Nosso registro
+            </Link>
+            <Link
               href="/intimo/preferencias"
               className="focus-ring rounded-full bg-surface px-4 py-2 text-sm font-medium text-ink shadow-soft"
             >

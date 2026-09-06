@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { actionContext, fail, ok, type Result } from '@/app/actions/_helpers'
 import { intimatePreferencesSchema, pinSchema } from '@/lib/validation'
 import {
+  assertIntimateAccess,
   getIntimateSettings,
   hashPin,
   lockIntimateSession,
@@ -187,5 +188,77 @@ export async function revokeConsent(categoryCode: string): Promise<Result> {
   await logSecurityEvent('consentimento_revogado', { categoria: categoryCode })
   revalidatePath('/intimo/consentimento')
   revalidatePath('/intimo')
+  return ok()
+}
+
+/* --------------------------------------------------- registro de intimidade */
+
+const dataValida = (valor: string) => /^\d{4}-\d{2}-\d{2}$/.test(valor)
+
+/** Marca ou desmarca um dia. É o toque simples no calendário. */
+export async function toggleIntimateDay(
+  date: string,
+): Promise<Result<{ marcado: boolean }>> {
+  if (!dataValida(date)) return fail('Data inválida.')
+
+  const { supabase, coupleId, userId } = await actionContext()
+  const acesso = await assertIntimateAccess(coupleId, userId)
+  if (!acesso.ok) return fail(acesso.motivo)
+
+  // Registrar no futuro não faz sentido e sujaria as estatísticas.
+  if (date > new Date().toISOString().slice(0, 10)) {
+    return fail('Não dá para marcar um dia que ainda não chegou.')
+  }
+
+  const { data: existente } = await supabase
+    .from('intimate_log')
+    .select('id')
+    .eq('couple_id', coupleId)
+    .eq('happened_on', date)
+    .maybeSingle()
+
+  if (existente) {
+    const { error } = await supabase.from('intimate_log').delete().eq('id', existente.id)
+    if (error) return fail(error.message)
+    revalidatePath('/intimo/registro')
+    return ok({ marcado: false })
+  }
+
+  const { error } = await supabase
+    .from('intimate_log')
+    .insert({ couple_id: coupleId, happened_on: date, created_by: userId })
+
+  if (error) return fail(error.message)
+  revalidatePath('/intimo/registro')
+  return ok({ marcado: true })
+}
+
+/** Detalhes de um dia já marcado: quantas vezes, humor e anotação. */
+export async function saveIntimateEntry(input: {
+  date: string
+  vezes?: number
+  note?: string
+  mood?: string
+}): Promise<Result> {
+  if (!dataValida(input.date)) return fail('Data inválida.')
+
+  const { supabase, coupleId, userId } = await actionContext()
+  const acesso = await assertIntimateAccess(coupleId, userId)
+  if (!acesso.ok) return fail(acesso.motivo)
+
+  const { error } = await supabase.from('intimate_log').upsert(
+    {
+      couple_id: coupleId,
+      happened_on: input.date,
+      vezes: Math.max(1, Math.min(input.vezes ?? 1, 20)),
+      note: input.note ? sanitizeText(input.note, 500) : null,
+      mood: input.mood ? sanitizeText(input.mood, 40) : null,
+      created_by: userId,
+    },
+    { onConflict: 'couple_id,happened_on' },
+  )
+
+  if (error) return fail(error.message)
+  revalidatePath('/intimo/registro')
   return ok()
 }

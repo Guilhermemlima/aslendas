@@ -418,3 +418,16 @@ export interface Notification {
   read_at: ISODateTime | null
   created_at: ISODateTime
 }
+
+/** Registro de intimidade — vive apenas dentro da área íntima. */
+export interface IntimateLogEntry {
+  id: UUID
+  couple_id: UUID
+  happened_on: ISODate
+  vezes: number
+  note: string | null
+  mood: string | null
+  created_by: UUID
+  created_at: ISODateTime
+  updated_at: ISODateTime
+}
