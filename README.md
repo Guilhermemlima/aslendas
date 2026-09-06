@@ -22,7 +22,7 @@ painel administrativo completo.
    | `0004_storage.sql` | buckets privados e políticas de storage |
    | `0005_seed_catalog.sql` | catálogo de jogos, conquistas e categorias de consentimento |
    | `0006_seed_questions.sql` | banco global de perguntas |
-| `0007_corrige_convite.sql` | corrige `create_invite()` (só para bancos criados antes desta correção) |
+   | `0007_corrige_convite.sql` | corrige `create_invite()` (só para bancos criados antes desta correção) |
 
 3. Em **Authentication → Providers**, deixe **Email** ligado. Para uso pessoal,
    desligar a confirmação por e-mail acelera o cadastro.
@@ -54,7 +54,7 @@ Para conferir se ficou tudo certo antes de subir o servidor:
 npm run verificar
 ```
 
-O script valida o formato das chaves, testa a conexão e confere se as seis
+O script valida o formato das chaves, testa a conexão e confere se as
 migrations foram aplicadas. Ele nunca imprime o valor de nenhuma chave.
 
 ## 3. Rodar
