@@ -7,7 +7,7 @@ import {
   randomMemory,
   upcomingDates,
 } from '@/services/content'
-import { onThisDay, signOne } from '@/services/media'
+import { listMedia, onThisDay, signOne } from '@/services/media'
 import { createClient } from '@/lib/supabase/server'
 import { HomeHero } from '@/features/home/home-hero'
 import { HomeHighlights } from '@/features/home/home-highlights'
@@ -26,14 +26,29 @@ export default async function HomePage() {
     ? await supabase.from('media').select('*').eq('id', couple.cover_media_id).maybeSingle()
     : null
 
-  const [cover, memory, dates, letters, surprises, thisDay] = await Promise.all([
+  const [cover, memory, dates, letters, surprises, thisDay, favoritas] = await Promise.all([
     signOne((coverRow?.data as Media | null) ?? null),
     randomMemory(couple.id),
     listImportantDates(couple.id),
     listLetters(couple.id),
     pendingSurprises(couple.id, me.id),
     onThisDay(couple.id),
+    listMedia(couple.id, { kind: 'image', favoritesOnly: true, limit: 8 }),
   ])
+
+  // As favoritas dão o tom da capa. Com menos de duas, o carrossel cai para as
+  // fotos mais recentes — e a capa escolhida no perfil sempre abre a sequência.
+  const acervo =
+    favoritas.length >= 2
+      ? favoritas
+      : await listMedia(couple.id, { kind: 'image', limit: 8 })
+
+  const heroPhotos = [
+    ...(cover?.url ? [{ id: cover.id, url: cover.url, caption: cover.caption }] : []),
+    ...acervo
+      .filter((item) => item.url && item.id !== cover?.id)
+      .map((item) => ({ id: item.id, url: item.url as string, caption: item.caption })),
+  ].slice(0, 8)
 
   const upcoming = upcomingDates(dates, 4)
   const isAnniversary = isSameDayOfYear(`${couple.started_at}T12:00:00`, new Date())
@@ -48,7 +63,7 @@ export default async function HomePage() {
       <HomeHero
         couple={couple}
         quote={settings.home_quote}
-        coverUrl={cover?.url ?? null}
+        photos={heroPhotos}
         meName={me.display_name}
         partnerName={partner?.display_name ?? null}
         isAnniversary={isAnniversary}

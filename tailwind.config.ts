@@ -72,12 +72,18 @@ const config: Config = {
         shimmer: {
           '100%': { transform: 'translateX(100%)' },
         },
+        // Zoom lento na foto ativa do carrossel da Home.
+        kenburns: {
+          from: { transform: 'scale(1)' },
+          to: { transform: 'scale(1.08)' },
+        },
       },
       animation: {
         float: 'float 6s ease-in-out infinite',
         twinkle: 'twinkle 4s ease-in-out infinite',
         'fade-up': 'fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both',
         shimmer: 'shimmer 1.6s infinite',
+        kenburns: 'kenburns 9s ease-out forwards',
       },
     },
   },

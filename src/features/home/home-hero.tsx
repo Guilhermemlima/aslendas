@@ -8,6 +8,7 @@ import { Petals } from '@/components/motion/particles'
 import { Confetti } from '@/components/motion/confetti'
 import { ButtonLink } from '@/components/ui/button'
 import { Parallax } from '@/components/motion/gsap-scroll'
+import { HeroCarousel, type HeroPhoto } from '@/features/home/hero-carousel'
 import { relationshipTime, nextMilestone, formatDate } from '@/lib/date'
 import type { Couple } from '@/types/db'
 
@@ -18,14 +19,14 @@ import type { Couple } from '@/types/db'
 export function HomeHero({
   couple,
   quote,
-  coverUrl,
+  photos,
   meName,
   partnerName,
   isAnniversary,
 }: {
   couple: Couple
   quote: string | null
-  coverUrl: string | null
+  photos: HeroPhoto[]
   meName: string
   partnerName: string | null
   isAnniversary: boolean
@@ -49,16 +50,11 @@ export function HomeHero({
         className="card overflow-hidden"
       >
         <div className="relative aspect-[16/10] w-full sm:aspect-[21/9]">
-          {coverUrl ? (
-            // A imagem é 25% mais alta que o quadro e sobe um pouco: assim o
+          {photos.length > 0 ? (
+            // As fotos são 25% mais altas que o quadro e sobem um pouco: assim o
             // parallax tem folga para deslocar sem mostrar borda vazia.
             <Parallax className="absolute inset-0" intensidade={0.12}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={coverUrl}
-                alt=""
-                className="absolute inset-x-0 -top-[12%] h-[125%] w-full object-cover"
-              />
+              <HeroCarousel photos={photos} />
             </Parallax>
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gradient-romance">
