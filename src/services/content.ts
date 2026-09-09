@@ -330,7 +330,10 @@ export async function listProfileSections(
   const supabase = await createClient()
   const { data } = await supabase
     .from('profile_sections')
-    .select('*, profile_items(*)')
+    // O apelido `items:` importa: sem ele o PostgREST devolve a chave
+    // `profile_items` e `section.items` fica undefined — os itens somem da tela
+    // mesmo estando gravados no banco.
+    .select('*, items:profile_items(*)')
     .eq('couple_id', coupleId)
     .eq('subject_user_id', subjectUserId)
     .order('sort_order')

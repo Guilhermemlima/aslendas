@@ -10,8 +10,14 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive, noimageindex" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive, noimageindex"
+        }
       ]
     }
+  ],
+  "regions": [
+    "gru1"
   ]
 }

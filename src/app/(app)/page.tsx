@@ -26,22 +26,22 @@ export default async function HomePage() {
     ? await supabase.from('media').select('*').eq('id', couple.cover_media_id).maybeSingle()
     : null
 
-  const [cover, memory, dates, letters, surprises, thisDay, favoritas] = await Promise.all([
+  const [cover, memory, dates, letters, surprises, thisDay, fotos] = await Promise.all([
     signOne((coverRow?.data as Media | null) ?? null),
     randomMemory(couple.id),
     listImportantDates(couple.id),
     listLetters(couple.id),
     pendingSurprises(couple.id, me.id),
     onThisDay(couple.id),
-    listMedia(couple.id, { kind: 'image', favoritesOnly: true, limit: 8 }),
+    listMedia(couple.id, { kind: 'image', limit: 12 }),
   ])
 
-  // As favoritas dão o tom da capa. Com menos de duas, o carrossel cai para as
-  // fotos mais recentes — e a capa escolhida no perfil sempre abre a sequência.
-  const acervo =
-    favoritas.length >= 2
-      ? favoritas
-      : await listMedia(couple.id, { kind: 'image', limit: 8 })
+  // Uma consulta só, ordenada aqui: as favoritas primeiro, o resto por data.
+  // Antes eram duas viagens ao banco quando havia menos de duas favoritas —
+  // e cada viagem custa caro no caminho função → Postgres.
+  const acervo = [...fotos].sort(
+    (a, b) => Number(b.is_favorite) - Number(a.is_favorite),
+  )
 
   const heroPhotos = [
     ...(cover?.url ? [{ id: cover.id, url: cover.url, caption: cover.caption }] : []),
