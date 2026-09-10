@@ -137,6 +137,68 @@ export function QuestionCard({
               </div>
             )}
 
+            {/* Sim / Talvez / Não — a resposta de cada um fica escondida até
+                os dois responderem, então marcar "sim" não expõe ninguém. */}
+            {layout === 'desire' && (
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { valor: 'Sim', classe: 'bg-rose-500 text-white hover:bg-rose-700' },
+                  { valor: 'Talvez', classe: 'bg-lilac-100 text-lilac-500 hover:bg-lilac-300/40' },
+                  { valor: 'Não', classe: 'border border-line bg-surface text-ink-soft hover:border-rose-300' },
+                ].map((opcao) => (
+                  <motion.button
+                    key={opcao.valor}
+                    type="button"
+                    whileTap={{ scale: 0.96 }}
+                    disabled={busy}
+                    onClick={() => void submit(opcao.valor, opcao.valor === 'Não' ? 2 : 5)}
+                    className={cn(
+                      'focus-ring rounded-2xl py-4 text-sm font-medium transition-colors',
+                      opcao.classe,
+                    )}
+                  >
+                    {opcao.valor}
+                  </motion.button>
+                ))}
+              </div>
+            )}
+
+            {/* Mapa do corpo: escala de quanto gosta, também revelada só depois. */}
+            {layout === 'scale' && (
+              <div>
+                <div className="grid grid-cols-5 gap-2">
+                  {[1, 2, 3, 4, 5].map((nota) => (
+                    <motion.button
+                      key={nota}
+                      type="button"
+                      whileTap={{ scale: 0.94 }}
+                      disabled={busy}
+                      onClick={() => void submit(String(nota), 5)}
+                      className="focus-ring rounded-2xl border border-line bg-surface py-4 font-display text-xl text-ink transition-colors hover:border-rose-300 hover:bg-rose-50"
+                    >
+                      {nota}
+                    </motion.button>
+                  ))}
+                </div>
+                <div className="mt-2 flex justify-between text-xs text-ink-faint">
+                  <span>não curto</span>
+                  <span>adoro</span>
+                </div>
+              </div>
+            )}
+
+            {/* Termômetro: degraus para fazer na hora, com saída fácil. */}
+            {layout === 'step' && (
+              <div className="grid grid-cols-2 gap-2">
+                <Button variant="outline" size="lg" disabled={busy} onClick={() => void submit('Passamos', 0)}>
+                  Passar
+                </Button>
+                <Button size="lg" disabled={busy} onClick={() => void submit('Topamos', 10)}>
+                  Topamos
+                </Button>
+              </div>
+            )}
+
             {layout === 'text' && (
               <div className="space-y-3">
                 <Textarea
@@ -182,7 +244,15 @@ export function QuestionCard({
                     )}
                   >
                     <p className="text-center font-display text-lg text-ink">
-                      {reveal.match ? '💛 Vocês responderam a mesma coisa!' : 'Respostas diferentes'}
+                      {layout === 'desire'
+                        ? reveal.match && answered === 'Sim'
+                          ? '🔥 Os dois disseram sim'
+                          : reveal.match
+                            ? 'Vocês responderam igual'
+                            : 'Respostas diferentes — fica para outra conversa'
+                        : reveal.match
+                          ? '💛 Vocês responderam a mesma coisa!'
+                          : 'Respostas diferentes'}
                     </p>
                     {reveal.answers.map((answer) => (
                       <div key={answer.userId} className="rounded-xl bg-surface/70 px-3 py-2">
@@ -211,18 +281,23 @@ export function QuestionCard({
   )
 }
 
-type Layout = 'options' | 'people' | 'confession' | 'truth-dare' | 'text'
+type Layout = 'options' | 'people' | 'confession' | 'truth-dare' | 'text' | 'desire' | 'scale' | 'step'
 
 function layoutFor(slug: string, question: GameQuestion): Layout {
   if (slug === 'quem-e-mais-provavel') return 'people'
   if (slug === 'eu-nunca') return 'confession'
   if (slug === 'verdade-ou-desafio') return 'truth-dare'
+  // Listas de desejo: cada um responde escondido e só o que coincide aparece.
+  if (slug === 'sim-nao-talvez' || slug === 'cartas-de-desejos') return 'desire'
+  if (slug === 'mapa-do-corpo') return 'scale'
+  if (slug === 'termometro') return 'step'
   if (question.options.length > 0) return 'options'
   return 'text'
 }
 
 function pointsFor(layout: Layout, answer: string): number {
   if (layout === 'truth-dare') return answer === 'Cumpri' ? 10 : 0
+  if (layout === 'step') return answer === 'Topamos' ? 10 : 0
   if (layout === 'text') return 8
   return 5
 }
