@@ -24,6 +24,7 @@ painel administrativo completo.
    | `0006_seed_questions.sql` | banco global de perguntas |
    | `0007_corrige_convite.sql` | corrige `create_invite()` (só para bancos criados antes desta correção) |
    | `0008_registro_intimo.sql` | calendário de registro dentro da área íntima |
+   | `0009_metas_financeiras.sql` | metas financeiras e aportes |
 
 3. Em **Authentication → Providers**, deixe **Email** ligado. Para uso pessoal,
    desligar a confirmação por e-mail acelera o cadastro.
@@ -136,6 +137,7 @@ depende de uma animação rodar para ficar visível.
 - Cartas (comum, programada, "Abra quando...", privada) com envelope animado.
 - Cápsulas do tempo com conteúdo escondido pela RLS até a data.
 - Planos (lista de sonhos), calendário com contagem regressiva, mapa e playlist.
+- Metas financeiras com calculadora de parcela e simulador de economia.
 - 12 jogos abertos + 6 na área íntima, com modo resposta secreta, XP, pontos,
   sequência e conquistas.
 - Área íntima isolada, com maioridade, PIN próprio e consentimento dos dois lados.

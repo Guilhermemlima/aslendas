@@ -431,3 +431,33 @@ export interface IntimateLogEntry {
   created_at: ISODateTime
   updated_at: ISODateTime
 }
+
+export type GoalStatus = 'ativa' | 'concluida' | 'pausada'
+
+/** Meta financeira do casal. Valores sempre em centavos. */
+export interface FinancialGoal {
+  id: UUID
+  couple_id: UUID
+  title: string
+  description: string | null
+  emoji: string | null
+  category: string
+  target_cents: number
+  target_date: ISODate | null
+  status: GoalStatus
+  created_by: UUID
+  created_at: ISODateTime
+  updated_at: ISODateTime
+}
+
+/** Aporte na meta. Valor negativo é retirada. */
+export interface FinancialContribution {
+  id: UUID
+  goal_id: UUID
+  couple_id: UUID
+  amount_cents: number
+  contributed_on: ISODate
+  note: string | null
+  created_by: UUID
+  created_at: ISODateTime
+}

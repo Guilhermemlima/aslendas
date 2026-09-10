@@ -22,6 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
   { key: 'cartas', href: '/cartas', label: 'Cartas', icon: 'mail', group: 'memoria' },
   { key: 'capsulas', href: '/capsulas', label: 'Cápsulas', icon: 'hourglass', group: 'memoria' },
   { key: 'planos', href: '/planos', label: 'Nossos Planos', icon: 'star', group: 'planos' },
+  { key: 'metas', href: '/metas', label: 'Metas', icon: 'piggy', group: 'planos' },
   { key: 'calendario', href: '/calendario', label: 'Calendário', icon: 'calendar', group: 'planos' },
   { key: 'mapa', href: '/mapa', label: 'Mapa', icon: 'map', group: 'planos' },
   { key: 'playlist', href: '/playlist', label: 'Playlist', icon: 'music', group: 'planos' },
