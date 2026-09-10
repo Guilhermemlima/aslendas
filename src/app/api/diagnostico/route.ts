@@ -54,6 +54,7 @@ export async function GET() {
     variaveis: relatorio,
     conexao,
     contas: await contarUsuarios(env.url),
+    migrations: await conferirMigrations(env.url),
     // Quando a chave é recusada, comparar os dois tokens mostra na hora se ela
     // é de outro projeto ou se tem o papel errado.
     chaves: compararChaves(env.url),
@@ -103,6 +104,67 @@ function compararChaves(urlConfigurada: string): Record<string, unknown> {
   }
 
   return { anon, service, refDaUrl, problemas }
+}
+
+/**
+ * Diz quais migrations já foram aplicadas.
+ *
+ * Em vez de guardar um registro de versão, pergunta ao banco se a tabela que
+ * cada migration cria existe — é o que de fato importa, e não desincroniza.
+ * Só nomes de tabela saem daqui, nenhum dado.
+ */
+async function conferirMigrations(url: string): Promise<Record<string, unknown>> {
+  const chave = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+  if (!chave) return { disponivel: false }
+
+  // A migration 0010 só insere linhas, então a prova dela é o jogo existir.
+  const esperado: { arquivo: string; tabela: string; filtro?: string }[] = [
+    { arquivo: '0001_schema', tabela: 'couples' },
+    { arquivo: '0005_seed_catalog', tabela: 'games' },
+    { arquivo: '0006_seed_questions', tabela: 'game_questions' },
+    { arquivo: '0008_registro_intimo', tabela: 'intimate_log' },
+    { arquivo: '0009_metas_financeiras', tabela: 'financial_goals' },
+    { arquivo: '0010_jogos_intimos', tabela: 'games', filtro: 'slug=eq.sim-nao-talvez' },
+    { arquivo: '0011_para_assistir', tabela: 'watchlist' },
+  ]
+
+  const aplicadas: string[] = []
+  const faltando: string[] = []
+
+  await Promise.all(
+    esperado.map(async (item) => {
+      try {
+        const consulta = item.filtro ? `&${item.filtro}` : ''
+        const resposta = await fetch(
+          `${url}/rest/v1/${item.tabela}?select=*&limit=1${consulta}`,
+          {
+            headers: { apikey: chave, Authorization: `Bearer ${chave}` },
+            cache: 'no-store',
+          },
+        )
+        if (!resposta.ok) {
+          faltando.push(item.arquivo)
+          return
+        }
+        // Para a 0010 não basta a tabela existir: a linha precisa estar lá.
+        const linhas = (await resposta.json()) as unknown[]
+        if (item.filtro && linhas.length === 0) faltando.push(item.arquivo)
+        else aplicadas.push(item.arquivo)
+      } catch {
+        faltando.push(item.arquivo)
+      }
+    }),
+  )
+
+  return {
+    disponivel: true,
+    aplicadas: aplicadas.sort(),
+    faltando: faltando.sort(),
+    proximoPasso:
+      faltando.length > 0
+        ? `Rode no SQL Editor, nesta ordem: ${faltando.sort().join(', ')}`
+        : 'Todas as migrations conhecidas já foram aplicadas.',
+  }
 }
 
 /**
