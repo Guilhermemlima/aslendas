@@ -461,3 +461,34 @@ export interface FinancialContribution {
   created_by: UUID
   created_at: ISODateTime
 }
+
+export type WatchStatus = 'quero' | 'assistindo' | 'assistido' | 'abandonado'
+export type WatchKind = 'filme' | 'serie' | 'documentario' | 'anime' | 'outro'
+
+export interface WatchlistItem {
+  id: UUID
+  couple_id: UUID
+  title: string
+  kind: WatchKind
+  status: WatchStatus
+  platform: string | null
+  genre: string | null
+  year: number | null
+  note: string | null
+  season: number | null
+  episode: number | null
+  watched_on: ISODate | null
+  sort_order: number
+  created_by: UUID
+  created_at: ISODateTime
+  updated_at: ISODateTime
+}
+
+export interface WatchlistRating {
+  item_id: UUID
+  couple_id: UUID
+  user_id: UUID
+  rating: number
+  comment: string | null
+  created_at: ISODateTime
+}

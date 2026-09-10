@@ -26,6 +26,7 @@ painel administrativo completo.
    | `0008_registro_intimo.sql` | calendário de registro dentro da área íntima |
    | `0009_metas_financeiras.sql` | metas financeiras e aportes |
    | `0010_jogos_intimos.sql` | jogos sexuais da área íntima |
+   | `0011_para_assistir.sql` | lista de filmes e séries |
 
 3. Em **Authentication → Providers**, deixe **Email** ligado. Para uso pessoal,
    desligar a confirmação por e-mail acelera o cadastro.
@@ -139,6 +140,8 @@ depende de uma animação rodar para ficar visível.
 - Cápsulas do tempo com conteúdo escondido pela RLS até a data.
 - Planos (lista de sonhos), calendário com contagem regressiva, mapa e playlist.
 - Metas financeiras com calculadora de parcela e simulador de economia.
+- Para Assistir: fila de filmes e séries, progresso de temporada, nota de cada
+  pessoa e sorteio para a noite.
 - 12 jogos abertos + 9 na área íntima, com modo resposta secreta, XP, pontos,
   sequência e conquistas.
 - Área íntima isolada, com maioridade, PIN próprio e consentimento dos dois lados.

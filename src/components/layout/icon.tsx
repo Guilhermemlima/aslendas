@@ -17,6 +17,7 @@ import {
   SlidersHorizontal,
   Sparkles,
   Star,
+  Tv,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -39,6 +40,7 @@ const MAP: Record<string, LucideIcon> = {
   settings: Settings,
   sliders: SlidersHorizontal,
   book: BookHeart,
+  tv: Tv,
 }
 
 export function NavIcon({ name, className }: { name: string; className?: string }) {
